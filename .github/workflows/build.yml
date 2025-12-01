@@ -17,21 +17,22 @@ jobs:
 
     - name: Clone Pico SDK
       run: |
-        # 直接把 SDK 下載到當前目錄
         git clone https://github.com/raspberrypi/pico-sdk.git
         cd pico-sdk
         git submodule update --init
+        echo "PICO_SDK_PATH=$PWD" >> $GITHUB_ENV
 
     - name: Build Firmware
       run: |
         mkdir build
         cd build
-        # 💥 這裡直接用絕對路徑告訴 CMake SDK 在哪裡
+        # 這裡直接用絕對路徑告訴 CMake SDK 在哪裡
         cmake -DPICO_SDK_PATH=$GITHUB_WORKSPACE/pico-sdk ..
         make -j4
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      # 💥 這裡修正了：改成 v4 版本
+      uses: actions/upload-artifact@v4
       with:
         name: fixed-firmware
         path: build/*.uf2
