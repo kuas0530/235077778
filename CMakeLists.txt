@@ -33,3 +33,4 @@ pico_enable_stdio_usb(host_hid 0)
 pico_enable_stdio_uart(host_hid 1)
 
 pico_add_extra_outputs(host_hid)
+
