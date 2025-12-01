@@ -66,9 +66,10 @@ extern "C"
 #define BOARD_TUD_MAX_SPEED OPT_MODE_DEFAULT_SPEED
 #endif
 
+// 💥 关键修改 1: 将 Host 端口改为 0 (使用原生硬件 USB，而非 PIO)
 // RHPort number used for host can be defined by board.mk, default to port 1
 #ifndef BOARD_TUH_RHPORT
-#define BOARD_TUH_RHPORT 1
+#define BOARD_TUH_RHPORT 0
 #endif
 
 // RHPort max operational speed can defined by board.mk
@@ -101,9 +102,10 @@ extern "C"
 #define CFG_TUH_ENABLED 1
 #define CFG_TUH_MAX_SPEED BOARD_TUH_MAX_SPEED
 
+// 💥 关键修改 2: 强制禁用 PIO USB，解决 pio_usb.h not found 错误
 #if CFG_TUSB_MCU == OPT_MCU_RP2040
 // Use pico-pio-usb as host controller for raspberry rp2040
-#define CFG_TUH_RPI_PIO_USB 1
+#define CFG_TUH_RPI_PIO_USB 0
 #endif
 
 /* USB DMA on some MCUs can only access a specific SRAM region with restriction on alignment.
@@ -178,6 +180,8 @@ extern "C"
 #define CFG_TUH_HID (3 * CFG_TUH_DEVICE_MAX)
 #define CFG_TUH_HID_EPIN_BUFSIZE 256
 #define CFG_TUH_HID_EPOUT_BUFSIZE 256
+
+
 
 #ifdef __cplusplus
 }
