@@ -1,43 +1,42 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.13)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/tinyusb/hw/bsp/family_support.cmake)
+# 使用環境變數找到 SDK
+include($ENV{PICO_SDK_PATH}/pico_sdk_init.cmake)
 
-# gets PROJECT name for the example (e.g. <BOARD>-<DIR_NAME>)
-family_get_project_name(PROJECT ${CMAKE_CURRENT_LIST_DIR})
+project(host_hid C CXX ASM)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
-project(${PROJECT} C CXX ASM)
+# 初始化 SDK
+pico_sdk_init()
 
-# Checks this example is valid for the family and initializes the project
-family_initialize_project(${PROJECT} ${CMAKE_CURRENT_LIST_DIR})
+# 建立執行檔
+add_executable(host_hid
+    src/main.c
+    src/usb_descriptors.c
+    src/hid_reports.c
+)
 
-add_executable(${PROJECT})
+# 包含路徑
+target_include_directories(host_hid PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
-# Example source
-target_sources(${PROJECT} PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/usb_descriptors.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/hid_reports.c
-  )
+# 啟用 Host 模式
+target_compile_definitions(host_hid PRIVATE
+    CFG_TUSB_RHPORT0_MODE=OPT_MODE_HOST
+)
 
-# Example include
-target_include_directories(${PROJECT} PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
-  )
+# 連結庫
+target_link_libraries(host_hid
+    pico_stdlib
+    tinyusb_host
+    tinyusb_board
+)
 
-# Configure compilation flags and libraries for the example without RTOS.
-# See the corresponding function in hw/bsp/FAMILY/family.cmake for details.
-family_configure_dual_usb_example(${PROJECT} noos)
+# 禁用 stdio 避免錯誤
+pico_enable_stdio_usb(host_hid 0)
+pico_enable_stdio_uart(host_hid 1)
 
-# due to warnings from Pico-PIO-USB
-if (FAMILY STREQUAL rp2040)
-  target_compile_options(${PROJECT} PUBLIC
-    -Wno-error=shadow
-    -Wno-error=cast-align
-    -Wno-error=cast-qual
-    -Wno-error=redundant-decls
-    -Wno-error=sign-conversion
-    -Wno-error=conversion
-    -Wno-error=sign-compare
-    -Wno-error=unused-function
-    )
-endif ()
+# 產生 uf2
+pico_add_extra_outputs(host_hid)
